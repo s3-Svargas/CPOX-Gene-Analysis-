@@ -1,4 +1,4 @@
-# 📌 CPOX Gene Analysis — BIO 312 Final Project
+# CPOX Gene Analysis — BIO 312 Final Project
 
 This repository contains the data, results, and a reproducible workflow for my BIO 312 term project. I analyzed the evolution of coproporphyrinogen oxidase (CPOX) across aquatic and terrestrial vertebrates by:
 
@@ -8,75 +8,113 @@ This repository contains the data, results, and a reproducible workflow for my B
 - Analyzing AlphaFold structural predictions for:
   - Net charge
   - Secondary structure
-  - Solvent-accessible surface area (ASA)
+  - Solvent-accessible surface area
+ 
+# CPOX – Lab 3: Identifying Homologs with Local BLAST
 
-## 📂 Repository Structure
-```text
-data/
-  raw/
-  processed/
-results/
-  trees/
-  figures/
-  structures/
-code/
-  01_make_homologs_fasta.sh
-  02_make_alignment.sh
-  03_run_iqtree.sh
-  04_net_charge_and_plots.sh
-  05_dssp_and_plots.sh
-  plot_cpox_traits.py
-```
-🧰 Software
-BLAST+, samtools, seqkit, MUSCLE v5, IQ-TREE2, gotree, newick utilities, ImageMagick, Python3 (pandas, matplotlib, mdtraj), DSSP via mdtraj
-
-📊 Figures Used in Term Paper
-Figure 1 - results/figures/Figure1_CPOX_MSA.pdf
-Figure 2 - results/figures/Figure2_CPOX_NetCharge.png
-Figure 3 - results/figures/Figure3_CPOX_DSSP_ASA.png
-Figure 4 - results/figures/Figure4_CPOX_Phylogeny.pdf
-
-🧪 Full Reproducible Workflow (Commands)
-(All commands needed to regenerate Figures 1–4)
-
-Step 1 — Homolog Search (BLAST)
+## Clone Lab 3 Repository
 
 ```bash
-samtools faidx ../lab03-s3-Svargas/allprotein.fas 'Hsap|NP_000088.3|CPOX' > data/raw/NP_000088.3.fa
-blastp -db ../lab03-s3-Svargas/allprotein.fas -query data/raw/NP_000088.3.fa -evalue 1e-30 -outfmt "6 qseqid sseqid pident length evalue bitscore stitle" -out data/raw/CPOX.blastp.detail.out
-awk '{ if ($6 < 1e-30) print $2 }' data/raw/CPOX.blastp.detail.out > data/raw/CPOX.blastp.detail.filtered.out
-seqkit grep --pattern-file data/raw/CPOX.blastp.detail.filtered.out ../lab03-s3-Svargas/allprotein.fas > data/processed/CPOX.homologs.fas
+cd ~
+git clone git@github.com:Bio312/lab03-$MYGIT.git
+cd lab03-$MYGIT
 ```
-Step 2 — Multiple Sequence Alignment
+
+Create a working directory for CPOX:
 
 ```bash
-muscle -align data/processed/CPOX.homologs.fas -output data/processed/CPOX.homologs.al.fas
-Rscript --vanilla ../lab04-s3-Svargas/plotMSA.R data/processed/CPOX.homologs.al.fas results/figures/Figure1_CPOX_MSA.pdf
+mkdir CPOX
+cd CPOX
 ```
-Step 3 — Phylogeny
+
+## Make a directory for CPOX work.
 
 ```bash
-iqtree2 -s data/processed/CPOX.homologs.al.fas -bb 1000 -nt AUTO -pre results/trees/CPOX
-gotree reroot midpoint -i results/trees/CPOX.treefile -o results/trees/CPOX.homologs.al.mid.treefile
-nw_order -c n results/trees/CPOX.homologs.al.mid.treefile | nw_display -s | convert svg:- results/figures/Figure4_CPOX_Phylogeny.pdf
+cd ~/lab03-$MYGIT
+mkdir CPOX
+cd CPOX
 ```
-Step 4 — Net Charge
+
+## Extract the human CPOX sequence as the BLAST query
+
+Use samtools faidx to pull the human CPOX protein from the combined allprotein.fas file.
 
 ```bash
-for pqr in results/structures/*.pqr; do base=$(basename "$pqr" .pqr); awk '/ATOM/ {sum+=$9} END {print base"\t"sum}' base="$base" "$pqr"; done > data/processed/net_charges.tsv
-python3 code/plot_cpox_traits.py --net-charges data/processed/net_charges.tsv --species-key data/processed/species_key.csv --outdir results/figures
+samtools faidx ~/lab03-$MYGIT/allprotein.fas 'Hsap|NP_000088.3|CPOX' \
+  > ~/lab03-$MYGIT/CPOX/NP_000088.3.fa
 ```
-Step 5 — DSSP / ASA
+This creates NP_000088.3.fa containing the human CPOX protein that will be used as the query for BLAST.
+
+## Run BLASTp for CPOX against the course protein database
+
+Run a local BLASTp search of the human CPOX query against the allprotein.fas database you created earlier in Lab 3.
 
 ```bash
-python3 ../lab06-s3-Svargas/dssp_batch_summary_mdtraj.py --pdb-dir results/structures --species-key data/processed/species_key.csv --refseq-map data/raw/CPOX.blastp.detail.filtered.out --out-csv data/processed/dssp_summary.csv --plots
-python3 code/plot_cpox_traits.py --dssp-summary data/processed/dssp_summary.csv --species-key data/processed/species_key.csv --outdir results/figures
+blastp \
+  -db ~/lab03-$MYGIT/allprotein.fas \
+  -query ~/lab03-$MYGIT/CPOX/NP_000088.3.fa \
+  -evalue 1e-5 \
+  -outfmt "6 qseqid sseqid pident length evalue bitscore stitle" \
+  -out ~/lab03-$MYGIT/CPOX/CPOX.blastp.detail.out
 ```
-🔁 Full regeneration
+This writes a tab-delimited file CPOX.blastp.detail.out with one line per hit, including sequence IDs, percent identity, alignment length, E-value, bit score, and annotation.
+
+## Filter CPOX hits by E-value to keep high-confidence homologs 
+
+Now keep only strong hits with E-value below a strict cutoff (e.g., 1e-30) and save the matching subject IDs to a new file.
+
 ```bash
-bash code/01_make_homologs_fasta.sh
-bash code/02_make_alignment.sh
-bash code/03_run_iqtree.sh
-bash code/04_net_charge_and_plots.sh
-bash code/05_dssp_and_plots.sh
+awk '{ if ($6 < 1e-30) print $2 }' \
+  ~/lab03-$MYGIT/CPOX/CPOX.blastp.detail.out \
+  > ~/lab03-$MYGIT/CPOX/CPOX.blastp.detail.filtered.out
 ```
+
+This produces CPOX.blastp.detail.filtered.out, containing the IDs of strong CPOX homologs that you carry forward into Lab 4.
+
+# Lab 4 — CPOX Multiple Sequence Alignment
+
+## Clone Lab 4 Repository
+
+```bash
+cd ~
+git clone git@github.com:Bio312/lab04-$MYGIT.git
+cd lab04-$MYGIT
+mkdir CPOX
+cd CPOX
+```
+
+## Make a FASTA of All Identified CPOX Homologs
+
+Use filtered IDs from Lab 3:
+
+```bash
+seqkit grep \
+  --pattern-file ~/lab03-$MYGIT/CPOX/CPOX.blastp.detail.filtered.out \
+  ~/lab03-$MYGIT/allprotein.fas \
+  | seqkit grep -v -p "carpio" \
+  > ~/lab04-$MYGIT/CPOX/CPOX.homologs.fas
+```
+
+## Align CPOX Homologs with MUSCLE
+
+```bash
+muscle \
+  -align ~/lab04-$MYGIT/CPOX/CPOX.homologs.fas \
+  -output ~/lab04-$MYGIT/CPOX/CPOX.homologs.al.fas
+```
+
+## Alignment Visualization
+
+```bash
+alv -kli ~/lab04-$MYGIT/CPOX/CPOX.homologs.al.fas \
+  | less -RS
+```
+
+## Generate MSA PDF
+
+```bash
+Rscript --vanilla ~/lab04-$MYGIT/plotMSA.R \
+  ~/lab04-$MYGIT/CPOX/CPOX.homologs.al.fas
+```
+
+This will create CPOX.homologs.al.fas.pdf. 
