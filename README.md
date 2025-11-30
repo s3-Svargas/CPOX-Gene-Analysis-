@@ -118,3 +118,4 @@ Rscript --vanilla ~/lab04-$MYGIT/plotMSA.R \
 ```
 
 This will create CPOX.homologs.al.fas.pdf. 
+<img src="img/Fig1.png" alt= “” width="150" height="150">
