@@ -352,3 +352,4 @@ nw_order -c n ~/lab08-"$MYGIT"/CPOX/CPOX.mid.treefile \
 
 This creates the final publication-quality phylogram used in the Results section.
 
+All generated output files can be found in this repository, and the commands above will reproduce all results and figures included in my final term paper.
