@@ -146,18 +146,6 @@ CPOX.treefile, which is the Unrooted ML tree (Newick)
 CPOX.iqtree, which has the model info & bootstrap support
 CPOX.log, which has the runtime log 
 
-You should now check the model:
-
-```bash
-grep -A3 "Best-fit model" ~/lab05-$MYGIT/CPOX/CPOX.iqtree
-```
-
-## Display Tree (ASCII, Unrooted) 
-
-```bash
-nw_display ~/lab05-$MYGIT/CPOX/CPOX.treefile
-```
-
 ## Save Unrooted Graphic PDF
 
 ```bash
@@ -173,12 +161,6 @@ Rscript --vanilla ~/lab05-$MYGIT/plotUnrooted.R \
 gotree reroot midpoint \
   -i ~/lab05-$MYGIT/CPOX/CPOX.treefile \
   -o ~/lab05-$MYGIT/CPOX/CPOX.mid.treefile
-```
-
-Display rooted ASCII:
-
-```bash
-nw_order -c n ~/lab05-$MYGIT/CPOX/CPOX.mid.treefile | nw_display -
 ```
 
 ## Save Midpoint-Rooted Phylogram PDF
