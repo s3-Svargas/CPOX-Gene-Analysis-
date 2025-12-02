@@ -118,4 +118,113 @@ Rscript --vanilla ~/lab04-$MYGIT/plotMSA.R \
 ```
 
 This will create CPOX.homologs.al.fas.pdf. 
-<img src="img/Fig1.png" alt= “” width="150" height="150">
+
+# Lab 5 — CPOX Gene Family Phylogeny (IQ-TREE)
+
+## Clone Lab 5 Repository 
+
+```bash
+cd ~
+git clone git@github.com:Bio312/lab05-$MYGIT.git
+cd lab05-$MYGIT
+mkdir CPOX
+cd CPOX
+```
+
+## Copy Aligned CPOX Homologs from Lab 4
+
+```bash
+cp ~/lab04-$MYGIT/CPOX/CPOX.homologs.al.fas \
+   ~/lab05-$MYGIT/CPOX/
+```
+## Run IQ-TREE (Maximum Likelihood)
+
+This performs a model selection, an ML tree search, and an Ultrafast bootstrap (1,000 replicates)
+
+```bash
+iqtree \
+  -s ~/lab05-$MYGIT/CPOX/CPOX.homologs.al.fas \
+  -bb 1000 \
+  -nt 2 \
+  -pre ~/lab05-$MYGIT/CPOX/CPOX
+```
+
+You will get three files:
+CPOX.treefile, which is the Unrooted ML tree (Newick)
+CPOX.iqtree, which has the model info & bootstrap support
+CPOX.log, which has the runtime log 
+
+You should now check the model:
+
+```bash
+grep -A3 "Best-fit model" ~/lab05-$MYGIT/CPOX/CPOX.iqtree
+```
+
+## Display Tree (ASCII, Unrooted) 
+
+```bash
+nw_display ~/lab05-$MYGIT/CPOX/CPOX.treefile
+```
+
+## Save Unrooted Graphic PDF
+
+```bash
+Rscript --vanilla ~/lab05-$MYGIT/plotUnrooted.R \
+  ~/lab05-$MYGIT/CPOX/CPOX.treefile \
+  ~/lab05-$MYGIT/CPOX/CPOX.treefile.pdf \
+  0.4 15
+```
+
+## Midpoint Root the Tree
+
+```bash
+gotree reroot midpoint \
+  -i ~/lab05-$MYGIT/CPOX/CPOX.treefile \
+  -o ~/lab05-$MYGIT/CPOX/CPOX.mid.treefile
+```
+
+Display rooted ASCII:
+
+```bash
+nw_order -c n ~/lab05-$MYGIT/CPOX/CPOX.mid.treefile | nw_display -
+```
+
+## Save Midpoint-Rooted Phylogram PDF
+```bash
+nw_order -c n ~/lab05-$MYGIT/CPOX/CPOX.mid.treefile \
+  | nw_display -s -w 1000 \
+      -l 'font-size:10px;font-family:sans' \
+      -i 'font-size:8px;font-family:sans' \
+      -b 'visibility:hidden' \
+      -I l -n -4 -W 4.0 -v 24 - \
+  | convert -density 300 svg:- \
+      ~/lab05-$MYGIT/CPOX/CPOX.mid.treefile.pdf
+```
+
+## Save Midpoint-Rooted Cladogram PDF (Topology-only)
+
+```bash
+nw_order -c n ~/lab05-$MYGIT/CPOX/CPOX.mid.treefile \
+  | nw_topology - \
+  | nw_display -s -w 1000 \
+      -l 'font-size:10px;font-family:sans' \
+      -i 'font-size:8px;font-family:sans' \
+      -b 'visibility:hidden' \
+      -S -I l -n -4 -W 4.0 -v 24 - \
+  | convert -density 300 svg:- \
+      ~/lab05-$MYGIT/CPOX/CPOX.mid.cladogram.pdf
+```
+
+## Save Command History + Push to GitHub
+
+```bash
+cd ~/lab05-$MYGIT
+
+history > lab5.commandhistory.txt
+
+git add .
+git commit -m "CPOX ML Tree, Midpoint Rooted Tree, PDFs, and History"
+git pull --no-edit
+git push
+```
+
