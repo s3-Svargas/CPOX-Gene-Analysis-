@@ -303,7 +303,7 @@ python3 ~/lab06-"$MYGIT"/dssp_batch_summary_mdtraj.py \
 
 This generates dssp_summary.csv and structural comparison plots used in the results.
 
-# Lab 8 - Evaluating sequencing reads and genome assemblies 
+# Lab 8 - CPOX Gene Family Phylogeny  
 
 ## Clone Lab 8 Repository and Set Up CPOX Directory
 ```bash
