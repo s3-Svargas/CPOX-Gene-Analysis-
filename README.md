@@ -329,15 +329,62 @@ python3 ~/lab06-"$MYGIT"/dssp_batch_summary_mdtraj.py \
 
 This generates dssp_summary.csv and structural comparison plots used in the results.
 
-# Lab 7 - Phylogenetic Regression between Structural Traits and Lifestyle Transitions
+# Lab 8 - Evaluating sequencing reads and genome assemblies 
 
-## Clone Lab 7 Repository and Set Up CPOX Directory
+## Clone Lab 8 Repository and Set Up CPOX Directory
 ```bash
 cd ~
-git clone git@github.com:Bio312/lab07-"$MYGIT".git
-cd lab07-"$MYGIT"
+git clone git@github.com:Bio312/lab08-"$MYGIT".git
+cd lab08-"$MYGIT"
 mkdir CPOX
 cd CPOX
+```
+
+## Copy CPOX Multiple Sequence Alignment from Lab 4
+
+```bash
+cp ~/lab04-"$MYGIT"/CPOX/CPOX.homologs.al.fas \
+   ~/lab08-"$MYGIT"/CPOX/
+```
+
+## Infer CPOX Gene Tree with IQ-TREE (ML + Model Selection)
+
+```bash
+iqtree \
+  -s ~/lab08-"$MYGIT"/CPOX/CPOX.homologs.al.fas \
+  -m MFP \
+  -bb 1000 \
+  -nt 2 \
+  -pre ~/lab08-"$MYGIT"/CPOX/CPOX
+```
+
+This generates CPOX.treefile, CPOX.log, and model stats using ModelFinder.
+
+## Midpoint-Root the Maximum-Likelihood Tree
+
+```bash
+gotree reroot midpoint \
+  -i ~/lab08-"$MYGIT"/CPOX/CPOX.treefile \
+  -o ~/lab08-"$MYGIT"/CPOX/CPOX.mid.treefile
+```
+
+This produces a midpoint-rooted phylogeny for interpretation.
+
+## Save Midpoint-Rooted Phylogram as a PDF
+
+```bash
+nw_order -c n ~/lab08-"$MYGIT"/CPOX/CPOX.mid.treefile \
+  | nw_display -s -w 1000 \
+      -l 'font-size:10px;font-family:sans' \
+      -i 'font-size:8px;font-family:sans' \
+      -b 'visibility:hidden' \
+      -I l -n -4 -W 4.0 -v 24 - \
+  | convert -density 300 svg:- \
+      ~/lab08-"$MYGIT"/CPOX/CPOX.mid.treefile.pdf
+```
+
+This creates the final publication-quality phylogram used in the Results section.
+
 
 
 ## Save Command History + Push to GitHub
