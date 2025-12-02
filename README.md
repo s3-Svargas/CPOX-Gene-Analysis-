@@ -214,6 +214,131 @@ nw_order -c n ~/lab05-$MYGIT/CPOX/CPOX.mid.treefile \
   | convert -density 300 svg:- \
       ~/lab05-$MYGIT/CPOX/CPOX.mid.cladogram.pdf
 ```
+# Lab 6 — CPOX Structural Analysis and Net Charge
+
+## 6.0 Clone the Lab 6 repository and create a CPOX directory
+
+```bash
+cd ~
+git clone git@github.com:Bio312/lab06-"$MYGIT".git
+cd lab06-"$MYGIT"
+mkdir CPOX
+cd CPOX
+```
+## Map CPOX RefSeq IDs to UniProt accessions
+
+```bash
+awk 'NR==FNR {m[$1]=$2; next} {if ($0 in m) print $0"\t"m[$0]; else print $0"\tMISSING"}' \
+  ~/lab06-"$MYGIT"/refseq_uniprot.tsv \
+  ~/lab06-"$MYGIT"/CPOX/CPOX_refseq_ids.txt \
+  > ~/lab06-"$MYGIT"/CPOX/CPOX_refseq_uniprot_subset.tsv
+```
+
+This produces a mapping file linking CPOX RefSeq IDs to UniProt accessions.
+
+## Calculate net charges from PQR structures
+
+```bash
+out=~/lab06-"$MYGIT"/CPOX/net_charges.tsv
+: > "$out"  # Create/truncate output file
+
+for f in ~/lab06-"$MYGIT"/CPOX/*.pqr; do
+  base=$(basename "$f")
+  Z=$(awk '$1=="ATOM"||$1=="HETATM"{s+=$9}END{printf"%.3f",s}' "$f")
+  printf "%s\tNetCharge=%s\n" "$base" "$Z" >> "$out"
+done
+```
+
+This generates net_charges.tsv, storing net charge values for each protein structure.
+
+## Build helper mapping tables linking structures to habitat
+Abbreviation -> status (aquatic/terrestrial)
+```bash
+awk -F, 'NR>1 {print $2"\t"$5}' \
+  ~/lab06-"$MYGIT"/species_key.csv \
+  | sort -u \
+  > abbr_status.tsv
+```
+RefSeq -> abbreviation mapping
+
+```bash
+awk -F'|' '{print $2"\t"$1}' \
+  ~/lab03-"$MYGIT"/CPOX/CPOX.blastp.detail.filtered.out \
+  | sort -u \
+  > refseq_abbr.tsv
+```
+
+RefSeq -> PNG filename mapping
+
+```bash
+ls *.png 2>/dev/null \
+  | sed 's/.png$//' \
+  | awk -F'__' '{print $1"\t"$0".png"}' \
+  | sort -u \
+  > refseq_png.tsv
+```
+
+Join all tables to link PNG to species + habitat
+
+```bash
+awk -F'\t' '{print $2"\t"$1}' refseq_abbr.tsv \
+  | sort -u \
+  > abbr_refseq.tsv
+
+join -t $'\t' -1 1 -2 1 abbr_refseq.tsv abbr_status.tsv \
+  > abbr_refseq_status.tsv
+
+awk -F'\t' '{print $2"\t"$1"\t"$3}' abbr_refseq_status.tsv \
+  | sort -u \
+  > refseq_abbr_status.tsv
+
+join -t $'\t' -1 1 -2 1 refseq_png.tsv refseq_abbr_status.tsv \
+  > png_refseq_abbr_status.tsv
+```
+
+This produces a table with columns:
+```text
+RefSeqID PNG Abbr Status
+```
+
+## Classify structural images by habitat
+
+```bash
+awk -F'\t' '$4=="aquatic" {print $2}' png_refseq_abbr_status.tsv \
+  > aquatic_pngs.txt
+
+awk -F'\t' '$4=="terrestrial" {print $2}' png_refseq_abbr_status.tsv \
+  > terrestrial_pngs.txt
+
+column -t -s $'\t' png_refseq_abbr_status.tsv \
+  | tee PNG_GUIDE.txt
+```
+
+This creates habitat-based file lists and a guide table for figures.
+
+## DSSP structural summary and plotting
+
+```bash
+python3 ~/lab06-"$MYGIT"/dssp_batch_summary_mdtraj.py \
+  --pdb-dir ~/lab06-"$MYGIT"/CPOX \
+  --species-key ~/lab06-"$MYGIT"/species_key.csv \
+  --refseq-map ~/lab03-"$MYGIT"/CPOX/CPOX.blastp.detail.filtered.out \
+  --out-csv ~/lab06-"$MYGIT"/CPOX/dssp_summary.csv \
+  --plots
+```
+
+This generates dssp_summary.csv and structural comparison plots used in the results.
+
+# Lab 7 - Phylogenetic Regression between Structural Traits and Lifestyle Transitions
+
+## Clone Lab 7 Repository and Set Up CPOX Directory
+```bash
+cd ~
+git clone git@github.com:Bio312/lab07-"$MYGIT".git
+cd lab07-"$MYGIT"
+mkdir CPOX
+cd CPOX
+
 
 ## Save Command History + Push to GitHub
 
