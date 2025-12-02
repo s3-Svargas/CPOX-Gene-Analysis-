@@ -385,18 +385,3 @@ nw_order -c n ~/lab08-"$MYGIT"/CPOX/CPOX.mid.treefile \
 
 This creates the final publication-quality phylogram used in the Results section.
 
-
-
-## Save Command History + Push to GitHub
-
-```bash
-cd ~/lab05-$MYGIT
-
-history > lab5.commandhistory.txt
-
-git add .
-git commit -m "CPOX ML Tree, Midpoint Rooted Tree, PDFs, and History"
-git pull --no-edit
-git push
-```
-
