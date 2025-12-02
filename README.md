@@ -95,13 +95,6 @@ muscle \
   -output ~/lab04-$MYGIT/CPOX/CPOX.homologs.al.fas
 ```
 
-## Alignment Visualization
-
-```bash
-alv -kli ~/lab04-$MYGIT/CPOX/CPOX.homologs.al.fas \
-  | less -RS
-```
-
 ## Generate MSA PDF
 
 ```bash
