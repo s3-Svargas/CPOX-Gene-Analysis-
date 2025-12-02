@@ -27,14 +27,6 @@ mkdir CPOX
 cd CPOX
 ```
 
-## Make a directory for CPOX work.
-
-```bash
-cd ~/lab03-$MYGIT
-mkdir CPOX
-cd CPOX
-```
-
 ## Extract the human CPOX sequence as the BLAST query
 
 Use samtools faidx to pull the human CPOX protein from the combined allprotein.fas file.
